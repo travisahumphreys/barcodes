@@ -25,7 +25,7 @@ EOF
 for key in $(ls barcode_*.png | cut -d_ -f2 | sort -u); do
     echo "#pagebreak(weak: true)" >>barcodes.typ
     echo "#text(size: 20pt, weight: \"bold\")[$key]" >>barcodes.typ
-    echo "#v(0.5cm)" >>barcodes.typ
+    echo "#v(0.3cm)" >>barcodes.typ
 
     # Add all images for this key
     for img in barcode_${key}_*.png; do
