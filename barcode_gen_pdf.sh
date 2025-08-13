@@ -3,7 +3,7 @@
 # Generate barcodes from CSV
 awk -F, 'NR > 1 {
     data = $2 "\t " $3 "\t"  $4 "\t\t\t\t "
-    system("zint -b 20 -d \"" data "\" -o barcode_" $1 "_" sprintf("%03d", NR-1) ".png")
+    system("zint -b 20 --height=35 -d \"" data "\" -o barcode_" $1 "_" sprintf("%03d", NR-1) ".png")
 }' ./Laser-pou.csv
 
 # Wait for all barcodes to be generated
@@ -35,12 +35,12 @@ for key in $(ls barcode_*.png | cut -d_ -f2 | sort -u); do
 done
 
 # Compile to PDF
-typst compile barcodes.typ all_barcodes.pdf
+typst compile barcodes.typ laser_barcodes.pdf
 
 # Clean up
 rm barcodes.typ
 
-echo "Generated all_barcodes.pdf with barcodes grouped by key"
+echo "Generated laser_barcodes.pdf with barcodes grouped by key"
 
 # Archive barcodes and PDF
 timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
@@ -49,7 +49,7 @@ mkdir -p "$archive_dir"
 
 # Move PNGs to archive, copy PDF
 mv barcode_*.png "$archive_dir/"
-cp all_barcodes.pdf "$archive_dir/"
+cp laser_barcodes.pdf "$archive_dir/"
 
 echo "Archived to: $archive_dir"
 
@@ -59,8 +59,8 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
     git add "$archive_dir"
     git commit -m "Archive barcode run $timestamp
 
-Generated $barcode_count barcodes
-PDF: all_barcodes.pdf"
+Generated $barcode_count Laser barcodes
+PDF: laser_barcodes.pdf"
     echo "Committed to git"
 else
     echo "Not a git repository - skipping git commit"
