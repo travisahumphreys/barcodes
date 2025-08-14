@@ -3,8 +3,19 @@
 # Generate barcodes from Router CSV with labels
 # Router CSV format: BUNDLE,PART-NAME,PART-NUM,LOT-NUM,QUANTITY
 awk -F, 'NR > 1 {
+    # Handle CSV quoted fields - remove outer quotes and unescape inner quotes
+    for (i = 1; i <= NF; i++) {
+        if ($i ~ /^".*"$/) {
+            # Remove outer quotes
+            gsub(/^"|"$/, "", $i)
+            # Unescape doubled quotes
+            gsub(/""/, "\"", $i)
+        }
+    }
     # Encode columns 3-5: PART-NUM, LOT-NUM, QUANTITY (same as Laser system)
     data = $3 "\t " $4 "\t"  $5 "\t\t\t\t "
+    # Escape quotes for shell but preserve the character in the barcode
+    gsub(/"/, "\\\"", data)
     system("zint -b 20 --height=35 -d \"" data "\" -o barcode_" $1 "_" sprintf("%03d", NR-1) ".png")
 }' ./Router-pou.csv
 
@@ -31,12 +42,25 @@ for key in $(ls barcode_*.png | cut -d_ -f2 | sort -u); do
 
     # Get labels for this key from CSV and add images with labels
     awk -F, -v key="$key" 'NR > 1 && $1 == key {
+        # Handle CSV quoted fields for labels
+        for (i = 1; i <= NF; i++) {
+            if ($i ~ /^".*"$/) {
+                # Remove outer quotes
+                gsub(/^"|"$/, "", $i)
+                # Unescape doubled quotes
+                gsub(/""/, "\"", $i)
+            }
+        }
         printf "barcode_%s_%03d.png:%s\n", $1, NR-1, $2
     }' ./Router-pou.csv | while IFS=: read -r img label; do
         if [[ -f "$img" ]]; then
-            echo "#text(size: 12pt, weight: \"regular\")[${label}]" >>barcodes_router.typ
-            echo "#v(0.1cm)" >>barcodes_router.typ
-            echo "#image(\"$img\")" >>barcodes_router.typ
+            # Escape # symbols for Typst (# is special in Typst syntax)
+            escaped_label="${label//\#/\\#}"
+            echo "#block(breakable: false)[" >>barcodes_router.typ
+            echo "  #text(size: 12pt, weight: \"regular\")[${escaped_label}]" >>barcodes_router.typ
+            echo "  #v(0.1cm)" >>barcodes_router.typ
+            echo "  #image(\"$img\")" >>barcodes_router.typ
+            echo "]" >>barcodes_router.typ
             echo "#v(0.15cm)" >>barcodes_router.typ
         fi
     done
