@@ -23,22 +23,40 @@ awk -F, 'NR > 1 {
 sleep 1
 
 # Create Typst document
-cat >barcodes_router.typ <<'EOF'
+generation_date=$(date +"%Y-%m-%d")
+cat >barcodes_router.typ <<EOF
+// State to track current bundle for headers
+#let bundle-state = state("bundle", "")
+
 #set page(
   paper: "us-letter",
-  margin: (x: 0.75in, y: 1in),
+  flipped: true,
+  margin: (x: 0.5in, y: 1in, top: 1.5in),
+  header: [
+    #set text(size: 12pt)
+    #grid(
+      columns: (1fr, 1fr),
+      align: (left, right),
+      [#text(weight: "bold")[Bundle: #context bundle-state.get()]],
+      [Generated: $generation_date]
+    )
+    #line(length: 100%)
+  ]
 )
 
-#set text(size: 14pt)
+#set text(size: 12pt)
 #set align(center)
 
 EOF
 
 # Add each key group to the Typst document
 for key in $(ls barcode_*.png | cut -d_ -f2 | sort -u); do
+    # Update bundle state for headers
+    echo "#bundle-state.update(\"$key\")" >>barcodes_router.typ
     echo "#pagebreak(weak: true)" >>barcodes_router.typ
-    echo "#text(size: 20pt, weight: \"bold\")[$key]" >>barcodes_router.typ
-    echo "#v(0.5cm)" >>barcodes_router.typ
+
+    # Start two-column layout for this bundle's barcodes
+    echo "#columns(2, gutter: 0.5cm)[" >>barcodes_router.typ
 
     # Get labels for this key from CSV and add images with labels
     awk -F, -v key="$key" 'NR > 1 && $1 == key {
@@ -57,13 +75,16 @@ for key in $(ls barcode_*.png | cut -d_ -f2 | sort -u); do
             # Escape # symbols for Typst (# is special in Typst syntax)
             escaped_label="${label//\#/\\#}"
             echo "#block(breakable: false)[" >>barcodes_router.typ
-            echo "  #text(size: 12pt, weight: \"regular\")[${escaped_label}]" >>barcodes_router.typ
-            echo "  #v(0.1cm)" >>barcodes_router.typ
-            echo "  #image(\"$img\")" >>barcodes_router.typ
+            echo "  #text(size: 10pt, weight: \"regular\")[${escaped_label}]" >>barcodes_router.typ
+            echo "  #v(0.05cm)" >>barcodes_router.typ
+            echo "  #image(\"$img\", width: 100%)" >>barcodes_router.typ
             echo "]" >>barcodes_router.typ
-            echo "#v(0.15cm)" >>barcodes_router.typ
+            echo "#v(0.1cm)" >>barcodes_router.typ
         fi
     done
+
+    # Close the columns layout
+    echo "]" >>barcodes_router.typ
 done
 
 # Compile to PDF
