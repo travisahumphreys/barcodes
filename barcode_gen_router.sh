@@ -16,7 +16,7 @@ awk -F, 'NR > 1 {
     data = $3 "\t " $4 "\t"  $5 "\t\t\t\t "
     # Escape quotes for shell but preserve the character in the barcode
     gsub(/"/, "\\\"", data)
-    system("zint -b 20 --height=35 -d \"" data "\" -o barcode_" $1 "_" sprintf("%03d", NR-1) ".png")
+    system("zint -b 20 --height=25 -d \"" data "\" -o barcode_" $1 "_" sprintf("%03d", NR-1) ".png")
 }' ./Router-pou.csv
 
 # Wait for all barcodes to be generated
@@ -87,8 +87,12 @@ for key in $(ls barcode_*.png | cut -d_ -f2 | sort -u); do
     echo "]" >>barcodes_router.typ
 done
 
+# Generate table for printed Update Form
+awk -F',' 'NR>1 {print $2","toupper($3)","$4","}' ./Router-pou.csv | sort -uV >update_form.csv
+
 # Compile to PDF
 typst compile barcodes_router.typ router_barcodes.pdf
+typst compile update_form.typ update_form.pdf
 
 # Clean up
 rm barcodes_router.typ
