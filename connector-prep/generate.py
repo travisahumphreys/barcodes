@@ -207,6 +207,7 @@ def generate_barcodes(records, bench):
                 "-d",
                 record["barcode_data"],
                 "--notext",
+                "--height=30",
                 "-o",
                 str(filepath),
             ],
@@ -260,7 +261,9 @@ def generate_lot_update_form(bench, part_numbers, bench_lots):
     for name in sorted(part_numbers.keys()):
         part_num = part_numbers[name]
         lot_num = bench_lots.get(bench, {}).get(name, "???")
-        lines.append(f"  [{name}], [{part_num}], [{lot_num}], [],")
+        lines.append(
+            f"  [{name.upper()}], [{part_num.upper()}], [{lot_num.upper()}], [],"
+        )
 
     lines.append(")")
     lines.append("")
@@ -301,10 +304,6 @@ def generate_typst_source(records, bench, part_numbers, bench_lots):
     Generate Typst source code for the PDF.
     """
     assemblies = group_by_assembly(records)
-
-    # Cast Part Numbers to Uppercase
-    for part_number in part_numbers:
-        part_numbers[part_number] = part_numbers[part_number].upper()
 
     lines = []
 
