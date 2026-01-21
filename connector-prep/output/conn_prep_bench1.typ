@@ -1,6 +1,32 @@
 #set page(paper: "us-letter", margin: (inside: 1in, rest: 0.5in),)
 #set text(font: "Liberation Sans", size: 10pt)
 
+#align(center, text(size: 16pt, weight: "bold")[Bench 1 - Lot Number Update Request])
+#v(1em)
+#align(center)[If a lot number needs updating, write the new lot number in the box.]
+#v(1em)
+
+#table(
+  columns: (1fr, 1.5fr, 1.5fr, 1.5fr),
+  align: (left, left, left, left, center),
+  stroke: 0.5pt,
+  inset: 8pt,
+  [*Part Name*], [*Part Number*], [*Current Lot*], [*New Lot*],
+  [BMS], [BMS1-52-.343], [DXN116668 161742], [],
+  [Black], [MS27488-22-2], [BASN115289 095855], [],
+  [Blue], [MS27488-16-1], [DXN116386 226836], [],
+  [Clear], [5160000110], [BC89996 026617], [],
+  [Contact], [BACC47GD1A], [BASN115311 092193], [],
+  [Label], [BACT19J1], [DXN103723 233292], [],
+  [Red], [MS27488-20-2], [DXN116839 212302], [],
+  [Yellow], [MS27488-12-1], [DXN112849 000321], [],
+)
+
+#v(2em)
+#align(center)[Requested by: #underline[#h(15em)] Date: #underline[#h(8em)]]
+
+#pagebreak(to: "odd")
+
 #align(center, text(size: 16pt, weight: "bold")[Connector Prep - Bench 1])
 #v(0.5em)
 

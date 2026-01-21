@@ -232,6 +232,47 @@ def generate_barcodes(records, bench):
 # =============================================================================
 
 
+def generate_lot_update_form(bench, part_numbers, bench_lots):
+    """
+    Generate Typst source for a lot number update request form.
+    """
+    lines = []
+
+    lines.append(
+        f'#align(center, text(size: 16pt, weight: "bold")[Bench {bench} - Lot Number Update Request])'
+    )
+    lines.append("#v(1em)")
+    lines.append(
+        "#align(center)[If a lot number needs updating, write the new lot number in the box.]"
+    )
+    lines.append("#v(1em)")
+    lines.append("")
+
+    # Table header and rows
+    lines.append("#table(")
+    lines.append("  columns: (1fr, 1.5fr, 1.5fr, 1.5fr),")
+    lines.append("  align: (left, left, left, left, center),")
+    lines.append("  stroke: 0.5pt,")
+    lines.append("  inset: 8pt,")
+    lines.append("  [*Part Name*], [*Part Number*], [*Current Lot*], [*New Lot*],")
+
+    # Sort by part name for consistent ordering
+    for name in sorted(part_numbers.keys()):
+        part_num = part_numbers[name]
+        lot_num = bench_lots.get(bench, {}).get(name, "???")
+        lines.append(f"  [{name}], [{part_num}], [{lot_num}], [],")
+
+    lines.append(")")
+    lines.append("")
+    lines.append("#v(2em)")
+    lines.append(
+        "#align(center)[Requested by: #underline[#h(15em)] Date: #underline[#h(8em)]]"
+    )
+    lines.append("")
+
+    return "\n".join(lines)
+
+
 def group_by_assembly(records):
     """
     Group records by assembly prefix (first 4 digits of bundle).
@@ -240,7 +281,7 @@ def group_by_assembly(records):
     assemblies = {}
     for record in records:
         bundle = record["bundle"]
-        # Extract prefix (everything before the dash, or first 4 chars)
+        # Extract Assembly ID (without dash number)
         if "-" in bundle:
             prefix = bundle.split("-")[0]
         else:
@@ -255,17 +296,26 @@ def group_by_assembly(records):
     return assemblies
 
 
-def generate_typst_source(records, bench):
+def generate_typst_source(records, bench, part_numbers, bench_lots):
     """
     Generate Typst source code for the PDF.
     """
     assemblies = group_by_assembly(records)
+
+    # Cast Part Numbers to Uppercase
+    for part_number in part_numbers:
+        part_numbers[part_number] = part_numbers[part_number].upper()
 
     lines = []
 
     # Document setup
     lines.append('#set page(paper: "us-letter", margin: (inside: 1in, rest: 0.5in),)')
     lines.append('#set text(font: "Liberation Sans", size: 10pt)')
+    lines.append("")
+
+    # Lot update request form as first page
+    lines.append(generate_lot_update_form(bench, part_numbers, bench_lots))
+    lines.append('#pagebreak(to: "odd")')
     lines.append("")
 
     # Title
@@ -377,10 +427,10 @@ def process_bench(bench, part_numbers, bench_lots, pou_headers, pou_rows):
 
     # Generate Typst and compile PDF
     print("Generating PDF with Typst...")
-    typst_source = generate_typst_source(records, bench)
-    pdf_file = compile_pdf(typst_source, bench)
+    typst_source = generate_typst_source(records, bench, part_numbers, bench_lots)
+    pdf = compile_pdf(typst_source, bench)
 
-    return pdf_file
+    return pdf
 
 
 def main():
