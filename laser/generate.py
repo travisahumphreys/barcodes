@@ -50,10 +50,10 @@ def build_barcode_data(part_num, lot_num, quantity):
     """
     Build barcode data string with control characters.
 
-    Format: {part}\t {lot}\t{qty}\t\t\t\t
+    Format: {part}\t\r{lot}\t{qty}\t\t\t\t\r\t\r
     (note space after first tab, space at end)
     """
-    return f"{part_num}\t {lot_num}\t{quantity}\t\t\t\t "
+    return f"{part_num}\t\r{lot_num}\t{quantity}\t\t\t\t\r\t\r"
 
 
 def safe_filename(part_num):
@@ -87,10 +87,13 @@ def generate_barcodes(rows):
         result = subprocess.run(
             [
                 "zint",
-                "-b", "20",
+                "-b",
+                "20",
                 "--height=35",
-                "-d", barcode_data,
-                "-o", str(filepath),
+                "-d",
+                barcode_data,
+                "-o",
+                str(filepath),
             ],
             capture_output=True,
             text=True,
@@ -124,7 +127,8 @@ def compile_pdf():
         [
             "typst",
             "compile",
-            "--root", str(SCRIPT_DIR),
+            "--root",
+            str(SCRIPT_DIR),
             str(typst_file),
             str(pdf_file),
         ],
