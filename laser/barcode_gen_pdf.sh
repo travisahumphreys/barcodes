@@ -43,25 +43,25 @@ rm barcodes.typ
 echo "Generated laser_barcodes.pdf with barcodes grouped by key"
 
 # Archive barcodes and PDF
-timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
-archive_dir="arch/$timestamp"
-mkdir -p "$archive_dir"
-
-# Move PNGs to archive, copy PDF
-mv barcode_*.png "$archive_dir/"
-cp laser_barcodes.pdf "$archive_dir/"
-
-echo "Archived to: $archive_dir"
-
-# Git commit the archive
-if git rev-parse --git-dir >/dev/null 2>&1; then
-    barcode_count=$(ls "$archive_dir"/barcode_*.png 2>/dev/null | wc -l)
-    git add "$archive_dir"
-    git commit -m "Archive barcode run $timestamp
-
-Generated $barcode_count Laser barcodes
-PDF: laser_barcodes.pdf"
-    echo "Committed to git"
-else
-    echo "Not a git repository - skipping git commit"
-fi
+# timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
+# archive_dir="arch/$timestamp"
+# mkdir -p "$archive_dir"
+#
+# # Move PNGs to archive, copy PDF
+# mv barcode_*.png "$archive_dir/"
+# cp laser_barcodes.pdf "$archive_dir/"
+#
+# echo "Archived to: $archive_dir"
+#
+# # Git commit the archive
+# if git rev-parse --git-dir >/dev/null 2>&1; then
+#     barcode_count=$(ls "$archive_dir"/barcode_*.png 2>/dev/null | wc -l)
+#     git add "$archive_dir"
+#     git commit -m "Archive barcode run $timestamp
+#
+# Generated $barcode_count Laser barcodes
+# PDF: laser_barcodes.pdf"
+#     echo "Committed to git"
+# else
+#     echo "Not a git repository - skipping git commit"
+# fi
