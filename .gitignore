@@ -1,3 +1,5 @@
 connector-prep/barcodes
+laser/barcodes/
+laser/output/
 *.pdf
 *.png
