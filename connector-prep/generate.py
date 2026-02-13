@@ -87,7 +87,7 @@ def generate_barcodes(bench):
         SCRIPT_DIR / "part_numbers.csv", "Name", "PartNumber"
     )
     bench_lots = load_bench_lots(SCRIPT_DIR / "bench_lots.csv", bench)
-    part_names, pou_rows = load_pou(SCRIPT_DIR / "conn_prep_pou.csv")
+    part_names, pou_rows = load_pou(SCRIPT_DIR / "pou_map.csv")
     controls = BENCH_CONTROLS[bench]
 
     bench_dir = BARCODE_DIR / f"bench{bench}"
@@ -233,7 +233,7 @@ def main():
     for f in [
         "part_numbers.csv",
         "bench_lots.csv",
-        "conn_prep_pou.csv",
+        "pou_map.csv",
         "conn_prep.typ",
     ]:
         if not (SCRIPT_DIR / f).exists():

@@ -19,7 +19,7 @@
 // Load CSV files
 #let raw-part-numbers = csv("part_numbers.csv")
 #let raw-bench-lots = csv("bench_lots.csv")
-#let raw-pou = csv("conn_prep_pou.csv")
+#let raw-pou = csv("pou_map.csv")
 
 // Build part numbers lookup: Name -> PartNumber
 #let part-numbers = {
