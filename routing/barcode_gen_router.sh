@@ -109,16 +109,16 @@ mv barcode_*.png "$archive_dir/"
 cp router_barcodes.pdf "$archive_dir/"
 
 echo "Archived to: $archive_dir"
-
-# Git commit the archive
-if git rev-parse --git-dir >/dev/null 2>&1; then
-    barcode_count=$(ls "$archive_dir"/barcode_*.png 2>/dev/null | wc -l)
-    git add "$archive_dir"
-    git commit -m "Archive barcode run $timestamp
-
-Generated $barcode_count Router barcodes with labels
-PDF: router_barcodes.pdf"
-    echo "Committed to git"
-else
-    echo "Not a git repository - skipping git commit"
-fi
+#
+# # Git commit the archive
+# if git rev-parse --git-dir >/dev/null 2>&1; then
+#     barcode_count=$(ls "$archive_dir"/barcode_*.png 2>/dev/null | wc -l)
+#     git add "$archive_dir"
+#     git commit -m "Archive barcode run $timestamp
+#
+# Generated $barcode_count Router barcodes with labels
+# PDF: router_barcodes.pdf"
+#     echo "Committed to git"
+# else
+#     echo "Not a git repository - skipping git commit"
+# fi
