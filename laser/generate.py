@@ -27,7 +27,8 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).parent.resolve()
 BARCODE_DIR = SCRIPT_DIR / "barcodes"
 OUTPUT_DIR = SCRIPT_DIR / "output"
-CSV_FILE = SCRIPT_DIR / "Laser-pou.csv"
+PART_LOTS_FILE = SCRIPT_DIR / "part_lots.csv"
+POU_MAP_FILE = SCRIPT_DIR / "pou_map.csv"
 
 
 # =============================================================================
@@ -35,10 +36,25 @@ CSV_FILE = SCRIPT_DIR / "Laser-pou.csv"
 # =============================================================================
 
 
-def load_csv():
-    """Load Laser-pou.csv as list of dicts."""
-    with open(CSV_FILE, newline="") as f:
-        return list(csv.DictReader(f))
+def load_part_lots(filepath):
+    """Load part_lots.csv into dict: PART-NAME -> (PART-NUM, LOT-NUM)."""
+    lookup = {}
+    with open(filepath, newline="") as f:
+        for row in csv.DictReader(f):
+            lookup[row["PART-NAME"].strip()] = (
+                row["PART-NUM"].strip(),
+                row["LOT-NUM"].strip(),
+            )
+    return lookup
+
+
+def load_pou(filepath):
+    """Load pou_map.csv, return (part_names, rows)."""
+    with open(filepath, newline="") as f:
+        reader = csv.DictReader(f)
+        part_names = [h for h in reader.fieldnames if h != "BUNDLE"]
+        rows = list(reader)
+    return part_names, rows
 
 
 # =============================================================================
@@ -56,57 +72,58 @@ def build_barcode_data(part_num, lot_num, quantity):
     return f"{part_num}\t\r{lot_num}\t{quantity}\t\t\t\t\r\t\r"
 
 
-def safe_filename(part_num):
-    """Convert part number to safe filename (replace / with -)."""
-    return part_num.replace("/", "-")
-
-
-def generate_barcodes(rows):
+def generate_barcodes():
     """
     Generate all barcode PNGs.
 
-    Naming convention: {bundle}_{safe_part}.png
+    Naming convention: {bundle}_{part_name}.png
     This allows Typst to construct paths from CSV data.
     """
+    part_lots = load_part_lots(PART_LOTS_FILE)
+    part_names, pou_rows = load_pou(POU_MAP_FILE)
+
     BARCODE_DIR.mkdir(parents=True, exist_ok=True)
 
     count = 0
-    for row in rows:
+    for row in pou_rows:
         bundle = row["BUNDLE"].strip()
-        part_num = row["PART-NUM"].strip()
-        lot_num = row["LOT-NUM"].strip()
-        quantity = row["QUANTITY"].strip()
-
-        if not bundle or not part_num:
+        if not bundle:
             continue
 
-        barcode_data = build_barcode_data(part_num, lot_num, quantity)
-        safe_part = safe_filename(part_num)
-        filepath = BARCODE_DIR / f"{bundle}_{safe_part}.png"
+        for name in part_names:
+            qty_str = row.get(name, "").strip()
+            if not qty_str:
+                continue
 
-        result = subprocess.run(
-            [
-                "zint",
-                "-b",
-                "20",
-                "--height=35",
-                "-d",
-                barcode_data,
-                "-o",
-                str(filepath),
-            ],
-            capture_output=True,
-            text=True,
-        )
+            qty = int(qty_str)
+            part_num, lot_num = part_lots[name]
 
-        if result.returncode != 0:
-            print(
-                f"Error generating barcode {bundle}/{part_num}: {result.stderr}",
-                file=sys.stderr,
+            barcode_data = build_barcode_data(part_num, lot_num, str(qty))
+            filepath = BARCODE_DIR / f"{bundle}_{name}.png"
+
+            result = subprocess.run(
+                [
+                    "zint",
+                    "-b",
+                    "20",
+                    "--height=35",
+                    "-d",
+                    barcode_data,
+                    "-o",
+                    str(filepath),
+                ],
+                capture_output=True,
+                text=True,
             )
-            sys.exit(1)
 
-        count += 1
+            if result.returncode != 0:
+                print(
+                    f"Error generating barcode {bundle}/{name}: {result.stderr}",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+
+            count += 1
 
     return count
 
@@ -163,24 +180,16 @@ def main():
     args = parser.parse_args()
 
     # Validate required files
-    if not CSV_FILE.exists():
-        print(f"Error: {CSV_FILE.name} not found", file=sys.stderr)
-        sys.exit(1)
-
-    typst_file = SCRIPT_DIR / "laser.typ"
-    if not typst_file.exists():
-        print(f"Error: laser.typ not found", file=sys.stderr)
-        sys.exit(1)
+    for f in ["part_lots.csv", "pou_map.csv", "laser.typ"]:
+        if not (SCRIPT_DIR / f).exists():
+            print(f"Error: {f} not found", file=sys.stderr)
+            sys.exit(1)
 
     if args.clean:
         clean_barcodes()
 
-    print("Loading CSV data...")
-    rows = load_csv()
-    print(f"  Found {len(rows)} rows")
-
     print("Generating barcodes...")
-    count = generate_barcodes(rows)
+    count = generate_barcodes()
     print(f"  Generated {count} barcodes")
 
     print("Compiling PDF...")
