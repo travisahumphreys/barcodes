@@ -1,6 +1,12 @@
+#let current_date = datetime.today().display("[month repr:short]-[day padding:none]-[year]")
+
 #set page(
   "us-letter",
   margin: (x:0.75in,y:0.6in,inside:1in),
+  header: [ 
+    #h(1fr)
+    Updated: #current_date  
+  ]
 )
 #set text(
   font: "IBM Plex Sans",
