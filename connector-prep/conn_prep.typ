@@ -187,7 +187,9 @@
 
 // Render each assembly
 #for (i, (prefix, bundles)) in pou-data.enumerate() {
-  text(size: 14pt, weight: "bold")[Assembly #prefix]
+  align(right)[
+  #text(size: 14pt, weight: "bold", )[Assembly #prefix]
+  ]
   v(0.3em)
 
   for (bundle, parts-with-qty) in bundles {
