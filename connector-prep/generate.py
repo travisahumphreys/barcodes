@@ -31,6 +31,7 @@ BENCH_CONTROLS = {
     2: {"post_part": "\t\r", "post_lot": "\t", "post_qty": "\t\t\t\t\r\t\r"},
     3: {"post_part": "\t\r", "post_lot": "\t", "post_qty": "\t\t\t\t\r\t\r"},
     4: {"post_part": "\t\r", "post_lot": "\t", "post_qty": "\t\t\t\t\r\t\r"},
+    5: {"post_part": "\t\r", "post_lot": "\t", "post_qty": "\t\t\t\t\r\t\r"},
 }
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
@@ -218,7 +219,7 @@ def process_bench(bench):
 def main():
     parser = argparse.ArgumentParser(description="Generate Connector Prep barcode PDFs")
     parser.add_argument(
-        "--bench", type=str, required=True, help='Bench number (1-4) or "all"'
+        "--bench", type=str, required=True, help='Bench number (1-5) or "all"'
     )
     parser.add_argument(
         "--list-benches", action="store_true", help="List configured benches"
