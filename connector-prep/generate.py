@@ -213,7 +213,7 @@ def process_bench(bench):
 
     print("Compiling PDF...")
     pdf = compile_pdf(bench)
-    print(f"  Created {pdf}")
+    print(f"  ╰--> ./{'/'.join(pdf.parts[-2:])}")
 
 
 def main():
