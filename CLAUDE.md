@@ -16,16 +16,18 @@ python generate.py --bench all      # Generate for all benches
 python generate.py --list-benches   # List configured benches
 ```
 
-### Laser Workstation (Bash + Typst)
+### Laser Workstation (Python + Typst)
 ```bash
 cd laser/
-bash barcode_gen_pdf.sh             # Generates laser_barcodes.pdf
+python generate.py                  # Generates output/laser.pdf
+python generate.py --clean          # Clean barcodes directory first
 ```
 
-### Routing Workstation (Bash + Typst)
+### Routing Workstation (Python + Typst)
 ```bash
 cd routing/
-bash barcode_gen_router.sh          # Generates router_barcodes.pdf + update form
+python generate.py                  # Generates output/router_barcodes.pdf + update form
+python generate.py --clean          # Clean barcodes directory first
 ```
 
 ## System Dependencies
@@ -33,17 +35,17 @@ bash barcode_gen_router.sh          # Generates router_barcodes.pdf + update for
 Required tools (no package.json/requirements.txt - all system-level):
 - `zint` - Barcode generator (CODE128, type 20)
 - `typst` - Document compiler for PDF layout
-- `python3` - For connector-prep subsystem only
+- `python3` - For all three subsystems
 
 ## Architecture
 
-**Three independent subsystems**, each with different implementation approaches:
+**Three independent subsystems**, all following the same logic delegation pattern:
 
 | Subsystem | Tech Stack | Data File | Output |
 |-----------|------------|-----------|--------|
 | connector-prep | Python + Typst | Multiple CSVs | Per-bench PDFs |
-| laser | Bash + Typst | Laser-pou.csv | Single PDF |
-| routing | Bash + Typst | Router-pou.csv | PDF + update form |
+| laser | Python + Typst | part_lots.csv + pou_map.csv | Single PDF |
+| routing | Python + Typst | pou_map.csv | PDF + update form |
 
 ### Connector-Prep Architecture (Most Complex)
 
@@ -57,7 +59,7 @@ Logic delegation pattern: Python handles only barcode PNG generation; all data p
 
 ### Laser/Routing Architecture
 
-Bash scripts dynamically generate Typst source, then compile to PDF. Scripts auto-commit archives with timestamps to git.
+Same logic delegation pattern: `generate.py` produces barcode PNGs via zint and invokes Typst; a static `.typ` file (`laser.typ` / `routing.typ`) reads the CSVs and handles all layout. Routing additionally derives `update_form.csv` and compiles `update_form.typ`.
 
 ## Barcode Data Format
 
@@ -72,5 +74,5 @@ Control characters are bench-specific (connector-prep) and must remain in Python
 
 - CSV files are the source of truth for all part data
 - Connector-prep supports 4 benches with different lot numbers and control sequences
-- Generated PDFs are gitignored; archives are committed with timestamps
+- Generated PDFs are gitignored
 - No automated testing - verify PDF output manually
